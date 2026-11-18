@@ -1,7 +1,8 @@
 {
   "name": "Ghost Clock",
-  "description": "Horloge transparente en bas à droite de tous les écrans qui disparait au mouvement de la souris",
+  "description": "A discreet transparent clock shown on every screen that fades away when you move the mouse.\n\nPosition, font, opacity and animations are configurable, with optional full-screen stretch and split-flap display modes.",
   "uuid": "ghost-clock@local",
   "settings-schema": "org.gnome.shell.extensions.ghost-clock",
-  "shell-version": [ "49", "50", "51" ]
+  "shell-version": [ "49", "50", "51" ],
+  "url": "https://github.com/ycarissan/ghost-clock-local"
 }

@@ -3,19 +3,19 @@
   <schema id="org.gnome.shell.extensions.ghost-clock" path="/org/gnome/shell/extensions/ghost-clock/">
     <key name="font" type="s">
       <default>'Sans Bold 27'</default>
-      <summary>Police de caractères</summary>
-      <description>Description de police Pango complète (famille, style, graisse et taille), par exemple « Cantarell Bold 27 ».</description>
+      <summary>Font</summary>
+      <description>Full Pango font description (family, style, weight and size), for example “Cantarell Bold 27”.</description>
     </key>
     <key name="opacity" type="d">
       <range min="0.05" max="1.0"/>
       <default>0.35</default>
-      <summary>Opacité de l'horloge</summary>
+      <summary>Clock opacity</summary>
     </key>
     <key name="reappear-delay" type="d">
       <range min="0.5" max="30.0"/>
       <default>2.0</default>
-      <summary>Délai de réapparition (secondes)</summary>
-      <description>Temps d'immobilité de la souris avant que l'horloge réapparaisse.</description>
+      <summary>Reappear delay (seconds)</summary>
+      <description>Mouse inactivity time before the clock reappears.</description>
     </key>
     <key name="animation" type="s">
       <choices>
@@ -25,21 +25,21 @@
         <choice value="none"/>
       </choices>
       <default>'fade'</default>
-      <summary>Type d'animation</summary>
+      <summary>Animation type</summary>
     </key>
     <key name="hide-duration" type="i">
       <range min="0" max="2000"/>
       <default>120</default>
-      <summary>Durée de la disparition (ms)</summary>
+      <summary>Hide duration (ms)</summary>
     </key>
     <key name="show-duration" type="i">
       <range min="0" max="5000"/>
       <default>400</default>
-      <summary>Durée de la réapparition (ms)</summary>
+      <summary>Show duration (ms)</summary>
     </key>
     <key name="hide-in-fullscreen" type="b">
       <default>true</default>
-      <summary>Masquer l'horloge sur les écrans ayant une fenêtre en plein écran</summary>
+      <summary>Hide the clock on screens showing a fullscreen window</summary>
     </key>
     <key name="position-mode" type="s">
       <choices>
@@ -51,35 +51,35 @@
         <choice value="custom"/>
       </choices>
       <default>'bottom-right'</default>
-      <summary>Position de l'horloge</summary>
-      <description>Position sur l'écran : coin inférieur droit, coin inférieur gauche, coin supérieur droit, coin supérieur gauche, centre, ou position personnalisée.</description>
+      <summary>Clock position</summary>
+      <description>Position on screen: bottom right, bottom left, top right, top left, center, or custom position.</description>
     </key>
     <key name="position-x" type="d">
       <range min="0.0" max="1.0"/>
       <default>0.5</default>
-      <summary>Position X personnalisée</summary>
-      <description>Position horizontale relative (0.0 = gauche, 1.0 = droite). Utilisé uniquement si position-mode est "custom".</description>
+      <summary>Custom X position</summary>
+      <description>Relative horizontal position (0.0 = left, 1.0 = right). Only used when position-mode is "custom".</description>
     </key>
     <key name="position-y" type="d">
       <range min="0.0" max="1.0"/>
       <default>0.5</default>
-      <summary>Position Y personnalisée</summary>
-      <description>Position verticale relative (0.0 = haut, 1.0 = bas). Utilisé uniquement si position-mode est "custom".</description>
+      <summary>Custom Y position</summary>
+      <description>Relative vertical position (0.0 = top, 1.0 = bottom). Only used when position-mode is "custom".</description>
     </key>
     <key name="stretch-to-screen" type="b">
       <default>false</default>
-      <summary>Étirer le texte sur tout l'écran</summary>
-      <description>Si activé, le texte de l'horloge s'étire pour occuper toute la largeur et hauteur disponibles de l'écran.</description>
+      <summary>Stretch the text to fill the screen</summary>
+      <description>When enabled, the clock text is enlarged to fill the available screen space.</description>
     </key>
     <key name="stretch-keep-ratio" type="b">
       <default>true</default>
-      <summary>Conserver les proportions en mode étiré</summary>
-      <description>Si activé, le texte est agrandi sans déformation. Sinon, il est déformé pour occuper exactement toute la largeur et toute la hauteur de l'écran.</description>
+      <summary>Keep aspect ratio in stretch mode</summary>
+      <description>When enabled, the text is enlarged without distortion. Otherwise it is distorted to cover exactly the whole screen width and height.</description>
     </key>
     <key name="split-flap" type="b">
       <default>false</default>
-      <summary>Effet panneau à palettes</summary>
-      <description>Affiche chaque chiffre sur une palette qui bascule au changement d'heure, comme les anciens tableaux d'affichage des gares et aéroports.</description>
+      <summary>Split-flap display</summary>
+      <description>Show each digit on a tile that flips when the time changes, like old train station and airport boards.</description>
     </key>
   </schema>
 </schemalist>

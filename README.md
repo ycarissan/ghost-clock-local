@@ -37,7 +37,24 @@ Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist
 
 ## 💻 Installation
 
-### Method 1: Manual Installation (Recommended for Development)
+### Method 1: From the Package (Recommended)
+
+1. **Download** `ghost-clock@local.shell-extension.zip` from the [Releases page](https://github.com/ycarissan/ghost-clock-local/releases).
+
+2. **Install it:**
+   ```bash
+   gnome-extensions install --force ghost-clock@local.shell-extension.zip
+   ```
+
+3. **Log out and back in** (required on Wayland so GNOME Shell detects the new extension).
+
+4. **Enable it:**
+   ```bash
+   gnome-extensions enable ghost-clock@local
+   ```
+   or via the **Extensions** application.
+
+### Method 2: Manual Installation (for Development)
 
 1. **Clone or copy** the repository to your extensions folder:
    ```bash
@@ -55,16 +72,12 @@ Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist
    ```
 
 3. **Enable the extension:**
-   - Restart GNOME Shell with `Alt+F2` then type `r` and press Enter
+   - Log out and back in (on X11 you can instead restart GNOME Shell with `Alt+F2`, `r`, Enter)
    - Or via the **Extensions** application (gnome-extensions-app)
    - Or via command line:
      ```bash
      gnome-extensions enable ghost-clock@local
      ```
-
-### Method 2: Installation via EGO (GNOME Extensions Online)
-
-*Coming soon: Submission to extensions.gnome.org*
 
 ## ⚙️ Configuration
 
@@ -176,6 +189,14 @@ sudo dnf install gnome-extensions-devel sassc gettext glib2-devel
 # On Arch Linux
 sudo pacman -S gnome-shell-extensions sass gettext glib2
 ```
+
+### Build the Package
+
+```bash
+gnome-extensions pack --force --out-dir=dist .
+```
+
+This creates `dist/ghost-clock@local.shell-extension.zip`, ready to be attached to a GitHub release. The schema is compiled at install time by `gnome-extensions install`.
 
 ### Recompile After Modifications
 

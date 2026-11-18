@@ -5,10 +5,10 @@ import Pango from 'gi://Pango';
 import {ExtensionPreferences} from 'resource:///org/gnome/Shell/Extensions/js/extensions/prefs.js';
 
 const ANIMATIONS = [
-    ['fade', 'Fondu'],
-    ['slide', 'Glissement vers le bas'],
+    ['fade', 'Fade'],
+    ['slide', 'Slide Down'],
     ['zoom', 'Zoom'],
-    ['none', 'Aucune (instantané)'],
+    ['none', 'None (instant)'],
 ];
 
 export default class GhostClockPreferences extends ExtensionPreferences {
@@ -22,18 +22,18 @@ export default class GhostClockPreferences extends ExtensionPreferences {
 
         // --- Apparence -----------------------------------------------------
         const appearance = new Adw.PreferencesGroup({
-            title: 'Apparence',
-            description: 'Les modifications sont appliquées instantanément sur tous les écrans.',
+            title: 'Appearance',
+            description: 'Changes are applied instantly on all screens.',
         });
         page.add(appearance);
 
         // Police : famille, style, graisse et taille dans un seul sélecteur
         const fontRow = new Adw.ActionRow({
-            title: 'Police',
-            subtitle: 'Famille, style et taille du texte',
+            title: 'Font',
+            subtitle: 'Text family, style and size',
         });
         const fontButton = new Gtk.FontDialogButton({
-            dialog: new Gtk.FontDialog({title: 'Choisir une police'}),
+            dialog: new Gtk.FontDialog({title: 'Choose a Font'}),
             level: Gtk.FontLevel.FONT,
             use_font: true,
             use_size: true,
@@ -50,8 +50,8 @@ export default class GhostClockPreferences extends ExtensionPreferences {
 
         // Opacité
         const opacityRow = new Adw.ActionRow({
-            title: 'Opacité',
-            subtitle: 'De presque invisible (5 %) à opaque (100 %)',
+            title: 'Opacity',
+            subtitle: 'From almost invisible (5 %) to opaque (100 %)',
         });
         const opacityAdjustment = new Gtk.Adjustment({
             lower: 0.05,
@@ -75,28 +75,28 @@ export default class GhostClockPreferences extends ExtensionPreferences {
 
         // Panneau à palettes
         const flapRow = new Adw.SwitchRow({
-            title: 'Panneau à palettes',
-            subtitle: 'Chiffres sur des palettes qui basculent, comme les anciens tableaux de gare ou d’aéroport',
+            title: 'Split-Flap Display',
+            subtitle: 'Digits on flipping tiles, like old train station or airport boards',
         });
         settings.bind('split-flap', flapRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         appearance.add(flapRow);
 
         // --- Comportement --------------------------------------------------
-        const behaviour = new Adw.PreferencesGroup({title: 'Comportement'});
+        const behaviour = new Adw.PreferencesGroup({title: 'Behavior'});
         page.add(behaviour);
 
         const delayRow = Adw.SpinRow.new_with_range(0.5, 30, 0.5);
         delayRow.set({
-            title: 'Délai de réapparition (s)',
-            subtitle: 'Temps d’immobilité de la souris avant le retour de l’horloge',
+            title: 'Reappear Delay (s)',
+            subtitle: 'Mouse inactivity time before the clock comes back',
             digits: 1,
         });
         settings.bind('reappear-delay', delayRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         behaviour.add(delayRow);
 
         const fullscreenRow = new Adw.SwitchRow({
-            title: 'Masquer en plein écran',
-            subtitle: 'Cache l’horloge sur un écran affichant une fenêtre en plein écran (vidéo, jeu…)',
+            title: 'Hide in Fullscreen',
+            subtitle: 'Hide the clock on a screen showing a fullscreen window (video, game…)',
         });
         settings.bind('hide-in-fullscreen', fullscreenRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         behaviour.add(fullscreenRow);
@@ -106,18 +106,18 @@ export default class GhostClockPreferences extends ExtensionPreferences {
         page.add(animation);
 
         const animRow = new Adw.ComboRow({
-            title: 'Type d’animation',
+            title: 'Animation Type',
             model: Gtk.StringList.new(ANIMATIONS.map(([, label]) => label)),
         });
         animation.add(animRow);
 
         const hideRow = Adw.SpinRow.new_with_range(0, 2000, 10);
-        hideRow.set({title: 'Durée de la disparition (ms)'});
+        hideRow.set({title: 'Hide Duration (ms)'});
         settings.bind('hide-duration', hideRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         animation.add(hideRow);
 
         const showRow = Adw.SpinRow.new_with_range(0, 5000, 50);
-        showRow.set({title: 'Durée de la réapparition (ms)'});
+        showRow.set({title: 'Show Duration (ms)'});
         settings.bind('show-duration', showRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         animation.add(showRow);
 
