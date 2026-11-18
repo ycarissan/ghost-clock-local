@@ -1,9 +1,11 @@
 # Ghost Clock
 
+[![Vibe coded with Claude](https://img.shields.io/badge/Vibe%20coded%20with-Claude-D97757?logo=claude&logoColor=white)](https://claude.com/claude-code)
+[![Vibe Coded Extension](https://img.shields.io/badge/Vibe%20Coded%20Extension-000000?logo=mistralai&logoColor=white)](https://vibe.coders.ist)
+
 > **Discreet transparent clock for GNOME Shell**
 
 [![GNOME Shell](https://img.shields.io/badge/GNOME%20Shell-49%20|%2050%20|%2051-blue?logo=gnome&logoColor=white)](https://gnome.org)
-[![Vibe Coded Extension](https://img.shields.io/badge/Vibe%20Coded%20Extension-000000?logo=mistralai&logoColor=white)](https://vibe.coders.ist)
 
 Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist clock** in the bottom-right corner of **all your screens**. It automatically hides when you move the mouse and reappears after a short period of inactivity, providing a clean and uncluttered workspace.
 
