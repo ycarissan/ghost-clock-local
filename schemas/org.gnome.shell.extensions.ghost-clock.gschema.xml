@@ -41,5 +41,35 @@
       <default>true</default>
       <summary>Masquer l'horloge sur les écrans ayant une fenêtre en plein écran</summary>
     </key>
+    <key name="position-mode" type="s">
+      <choices>
+        <choice value="bottom-right"/>
+        <choice value="bottom-left"/>
+        <choice value="top-right"/>
+        <choice value="top-left"/>
+        <choice value="center"/>
+        <choice value="custom"/>
+      </choices>
+      <default>'bottom-right'</default>
+      <summary>Position de l'horloge</summary>
+      <description>Position sur l'écran : coin inférieur droit, coin inférieur gauche, coin supérieur droit, coin supérieur gauche, centre, ou position personnalisée.</description>
+    </key>
+    <key name="position-x" type="d">
+      <range min="0.0" max="1.0"/>
+      <default>0.5</default>
+      <summary>Position X personnalisée</summary>
+      <description>Position horizontale relative (0.0 = gauche, 1.0 = droite). Utilisé uniquement si position-mode est "custom".</description>
+    </key>
+    <key name="position-y" type="d">
+      <range min="0.0" max="1.0"/>
+      <default>0.5</default>
+      <summary>Position Y personnalisée</summary>
+      <description>Position verticale relative (0.0 = haut, 1.0 = bas). Utilisé uniquement si position-mode est "custom".</description>
+    </key>
+    <key name="stretch-to-screen" type="b">
+      <default>false</default>
+      <summary>Étirer le texte sur tout l'écran</summary>
+      <description>Si activé, le texte de l'horloge s'étire pour occuper toute la largeur et hauteur disponibles de l'écran.</description>
+    </key>
   </schema>
 </schemalist>

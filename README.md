@@ -11,7 +11,9 @@ Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist
 
 ## 🎯 Features
 
-- **Multi-monitor support** : One clock per screen, positioned in the bottom-right corner
+- **Multi-monitor support** : One clock per screen
+- **Configurable position** : Choose from screen corners, center, or custom X/Y percentage position
+- **Full-screen stretch mode** : Option to stretch clock text across the entire screen
 - **Adjustable transparency** : Customizable opacity from 5% to 100%
 - **Smart auto-hide** : Automatically hides on mouse movement
 - **Smooth animations** : 4 animation types (fade, slide, zoom, instant)
@@ -78,6 +80,10 @@ After installation, access settings via:
 | **Animation** | Type | Fade | Choice: Fade, Slide, Zoom, None |
 | **Animation** | Hide Duration | 120 ms | Hide animation duration |
 | **Animation** | Show Duration | 400 ms | Show animation duration |
+| **Position** | Position Mode | Bottom Right | Choose: Bottom Right, Bottom Left, Top Right, Top Left, Center, Custom |
+| **Position** | Custom X Position (%) | 50 | Horizontal position as percentage (0 = left, 100 = right) - only for Custom mode |
+| **Position** | Custom Y Position (%) | 50 | Vertical position as percentage (0 = top, 100 = bottom) - only for Custom mode |
+| **Position** | Stretch to Screen | Disabled | Stretch clock text to fill the entire screen |
 
 ## 🎨 Advanced Customization
 
@@ -97,6 +103,27 @@ Opacity is defined as a decimal value (0.05 to 1.00):
 - **0.05** : Almost invisible (for a very subtle effect)
 - **0.35** : Light and elegant (default value)
 - **0.80-1.00** : Very visible
+
+### Position Settings
+
+Ghost Clock offers flexible positioning options:
+
+| Mode | Description |
+|------|-------------|
+| **Bottom Right** | Clock positioned in the bottom-right corner (default) |
+| **Bottom Left** | Clock positioned in the bottom-left corner |
+| **Top Right** | Clock positioned in the top-right corner |
+| **Top Left** | Clock positioned in the top-left corner |
+| **Center** | Clock centered on the screen |
+| **Custom Position** | Manually set X and Y as percentages (0-100%) |
+
+**Custom Position:** When "Custom Position" mode is selected, you can specify exact placement using:
+- **Custom X Position (%)**: 0 = far left, 100 = far right
+- **Custom Y Position (%)**: 0 = top, 100 = bottom
+
+### Stretch Mode
+
+When **Stretch to Screen** is enabled, the clock text expands to fill the entire screen dimensions. This creates a dramatic, immersive clock display that uses the full available space. The text remains centered and readable while occupying maximum screen real estate.
 
 ### Animations
 

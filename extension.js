@@ -82,33 +82,111 @@ export default class GhostClockExtension extends Extension {
         this._destroyClocks();
         const trackFullscreen = this._settings.get_boolean('hide-in-fullscreen');
         const style = this._getStyleString();
+        const positionMode = this._settings.get_string('position-mode');
+        const stretchToScreen = this._settings.get_boolean('stretch-to-screen');
 
         for (const monitor of Main.layoutManager.monitors) {
-            // Le texte est aligné en bas à droite par la mise en page de St :
-            // la position reste correcte quand la largeur du texte change.
+            // Le texte est aligné par la mise en page de St
             const label = new St.Label({
                 text: this._timeText,
                 style,
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.END,
                 pivot_point: new Graphene.Point({x: 0.5, y: 0.5}),
             });
+
             // Conteneur invisible et non interactif couvrant tout l'écran
             const bin = new St.Bin({
                 child: label,
                 reactive: false,
-                style: `padding: ${MARGIN_PX}px;`,
                 x: monitor.x,
                 y: monitor.y,
                 width: monitor.width,
                 height: monitor.height,
             });
 
+            // Appliquer l'étirement si activé
+            if (stretchToScreen) {
+                label.set({
+                    width: monitor.width,
+                    height: monitor.height,
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                });
+                bin.set_style('padding: 0px;');
+            } else {
+                // Appliquer la position selon le mode
+                this._applyPosition(label, bin, monitor, positionMode);
+            }
+
             if (this._hidden)
                 label.set(this._hiddenProps());
 
             Main.layoutManager.addTopChrome(bin, {trackFullscreen});
             this._clocks.push({bin, label});
+        }
+    }
+
+    _applyPosition(label, bin, monitor, positionMode) {
+        const margin = MARGIN_PX;
+
+        switch (positionMode) {
+        case 'bottom-right':
+            label.set({
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.END,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        case 'bottom-left':
+            label.set({
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.END,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        case 'top-right':
+            label.set({
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.START,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        case 'top-left':
+            label.set({
+                x_align: Clutter.ActorAlign.START,
+                y_align: Clutter.ActorAlign.START,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        case 'center':
+            label.set({
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        case 'custom':
+            const posX = this._settings.get_double('position-x');
+            const posY = this._settings.get_double('position-y');
+            label.set({
+                x_align: Clutter.ActorAlign.CENTER,
+                y_align: Clutter.ActorAlign.CENTER,
+                translation_x: (posX - 0.5) * monitor.width,
+                translation_y: (posY - 0.5) * monitor.height,
+            });
+            bin.set_style(`padding: ${margin}px;`);
+            break;
+
+        default:
+            label.set({
+                x_align: Clutter.ActorAlign.END,
+                y_align: Clutter.ActorAlign.END,
+            });
+            bin.set_style(`padding: ${margin}px;`);
         }
     }
 
@@ -129,6 +207,10 @@ export default class GhostClockExtension extends Extension {
             break;
         }
         case 'hide-in-fullscreen':
+        case 'position-mode':
+        case 'position-x':
+        case 'position-y':
+        case 'stretch-to-screen':
             this._buildClocks();
             break;
         default:

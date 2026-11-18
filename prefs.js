@@ -121,6 +121,73 @@ export default class GhostClockPreferences extends ExtensionPreferences {
         };
         syncAnimation();
 
+        // --- Position ------------------------------------------------------
+        const positionGroup = new Adw.PreferencesGroup({
+            title: 'Position',
+            description: 'Configure where the clock appears on each screen.',
+        });
+        page.add(positionGroup);
+
+        const POSITIONS = [
+            ['bottom-right', 'Bottom Right'],
+            ['bottom-left', 'Bottom Left'],
+            ['top-right', 'Top Right'],
+            ['top-left', 'Top Left'],
+            ['center', 'Center'],
+            ['custom', 'Custom Position'],
+        ];
+
+        const positionRow = new Adw.ComboRow({
+            title: 'Position Mode',
+            model: Gtk.StringList.new(POSITIONS.map(([, label]) => label)),
+        });
+        positionGroup.add(positionRow);
+
+        const positionXRow = Adw.SpinRow.new_with_range(0, 100, 1);
+        positionXRow.set({
+            title: 'Custom X Position (%)',
+            subtitle: 'Horizontal position as percentage (0 = left, 100 = right)',
+            digits: 0,
+        });
+        settings.bind('position-x', positionXRow, 'value', Gio.SettingsBindFlags.DEFAULT);
+        positionGroup.add(positionXRow);
+
+        const positionYRow = Adw.SpinRow.new_with_range(0, 100, 1);
+        positionYRow.set({
+            title: 'Custom Y Position (%)',
+            subtitle: 'Vertical position as percentage (0 = top, 100 = bottom)',
+            digits: 0,
+        });
+        settings.bind('position-y', positionYRow, 'value', Gio.SettingsBindFlags.DEFAULT);
+        positionGroup.add(positionYRow);
+
+        const stretchRow = new Adw.SwitchRow({
+            title: 'Stretch to Screen',
+            subtitle: 'Stretch clock text to fill the entire screen width and height',
+        });
+        settings.bind('stretch-to-screen', stretchRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        positionGroup.add(stretchRow);
+
+        const syncPosition = () => {
+            const mode = settings.get_string('position-mode');
+            const index = POSITIONS.findIndex(([value]) => value === mode);
+            if (index >= 0 && positionRow.selected !== index)
+                positionRow.selected = index;
+            // Custom position controls only visible in custom mode
+            positionXRow.sensitive = positionYRow.sensitive = mode === 'custom';
+        };
+
+        positionRow.connect('notify::selected', () => {
+            const [value] = POSITIONS[positionRow.selected] ?? POSITIONS[0];
+            settings.set_string('position-mode', value);
+        });
+        const positionChangedId = settings.connect('changed::position-mode', syncPosition);
+        window.connect('close-request', () => {
+            settings.disconnect(positionChangedId);
+            return false;
+        });
+        syncPosition();
+
         animRow.connect('notify::selected', () => {
             const [value] = ANIMATIONS[animRow.selected] ?? ANIMATIONS[0];
             settings.set_string('animation', value);
