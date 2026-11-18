@@ -71,5 +71,10 @@
       <summary>Étirer le texte sur tout l'écran</summary>
       <description>Si activé, le texte de l'horloge s'étire pour occuper toute la largeur et hauteur disponibles de l'écran.</description>
     </key>
+    <key name="stretch-keep-ratio" type="b">
+      <default>true</default>
+      <summary>Conserver les proportions en mode étiré</summary>
+      <description>Si activé, le texte est agrandi sans déformation. Sinon, il est déformé pour occuper exactement toute la largeur et toute la hauteur de l'écran.</description>
+    </key>
   </schema>
 </schemalist>

@@ -145,13 +145,19 @@ export default class GhostClockExtension extends Extension {
                 width: monitor.width,
                 height: monitor.height,
             });
-            bin.add_child(label);
+            // Intermédiaire qui porte la déformation du mode « étirer » sans
+            // ratio : l'échelle du label reste réservée à l'animation zoom.
+            const stretcher = new St.Bin({
+                child: label,
+                pivot_point: new Graphene.Point({x: 0, y: 0}),
+            });
+            bin.add_child(stretcher);
 
             if (this._hidden)
                 label.set(this._hiddenProps());
 
             Main.layoutManager.addTopChrome(bin, {trackFullscreen});
-            const clock = {bin, label, monitor};
+            const clock = {bin, stretcher, label, monitor};
             this._clocks.push(clock);
             this._fitClock(clock);
         }
@@ -179,7 +185,7 @@ export default class GhostClockExtension extends Extension {
     }
 
     // En mode « étirer », calcule la taille de police qui remplit l'écran
-    _fitClock({bin, label, monitor}) {
+    _fitClock({bin, stretcher, label, monitor}) {
         if (!this._settings.get_boolean('stretch-to-screen'))
             return;
 
@@ -200,6 +206,22 @@ export default class GhostClockExtension extends Extension {
             size *= Math.min(availW / natW, availH / natH);
         }
         label.set_style(this._getStyleString(Math.floor(size)));
+
+        if (this._settings.get_boolean('stretch-keep-ratio'))
+            return;
+
+        // Sans ratio : on déforme le texte (déjà au plus grand sans
+        // déformation) pour qu'il couvre exactement la zone disponible.
+        // L'échelle partant du coin haut-gauche, on le cale dans ce coin.
+        const [,, natW, natH] = stretcher.get_preferred_size();
+        if (natW <= 0 || natH <= 0)
+            return;
+        stretcher.set_scale(availW / natW, availH / natH);
+        const layout = bin.layout_manager;
+        if (layout.xFactor !== 0 || layout.yFactor !== 0) {
+            layout.xFactor = layout.yFactor = 0;
+            layout.layout_changed();
+        }
     }
 
     _destroyClocks() {
@@ -220,6 +242,7 @@ export default class GhostClockExtension extends Extension {
         case 'position-x':
         case 'position-y':
         case 'stretch-to-screen':
+        case 'stretch-keep-ratio':
             this._buildClocks();
             break;
         default:

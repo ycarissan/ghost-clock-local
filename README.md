@@ -15,7 +15,7 @@ Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist
 
 - **Multi-monitor support** : One clock per screen
 - **Configurable position** : Choose from screen corners, center, or custom X/Y percentage position
-- **Full-screen stretch mode** : Option to stretch clock text across the entire screen
+- **Full-screen stretch mode** : Option to stretch clock text across the entire screen, keeping its aspect ratio or not
 - **Adjustable transparency** : Customizable opacity from 5% to 100%
 - **Smart auto-hide** : Automatically hides on mouse movement
 - **Smooth animations** : 4 animation types (fade, slide, zoom, instant)
@@ -86,6 +86,7 @@ After installation, access settings via:
 | **Position** | Custom X Position (%) | 50 | Horizontal position as percentage (0 = left, 100 = right) - only for Custom mode |
 | **Position** | Custom Y Position (%) | 50 | Vertical position as percentage (0 = top, 100 = bottom) - only for Custom mode |
 | **Position** | Stretch to Screen | Disabled | Stretch clock text to fill the entire screen |
+| **Position** | Keep Aspect Ratio | Enabled | When stretching, keep the text proportions; disable to cover the whole width and height |
 
 ## 🎨 Advanced Customization
 
@@ -125,7 +126,10 @@ Ghost Clock offers flexible positioning options:
 
 ### Stretch Mode
 
-When **Stretch to Screen** is enabled, the clock text expands to fill the entire screen dimensions. This creates a dramatic, immersive clock display that uses the full available space. The text remains centered and readable while occupying maximum screen real estate.
+When **Stretch to Screen** is enabled, the clock text expands to fill the screen:
+
+- **Keep Aspect Ratio** on (default): the font is enlarged as much as possible without distortion; the remaining space is distributed according to the position setting.
+- **Keep Aspect Ratio** off: the text is distorted to cover exactly the whole screen width and height (minus the margin).
 
 ### Animations
 

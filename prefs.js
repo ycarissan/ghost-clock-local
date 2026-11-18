@@ -190,6 +190,14 @@ export default class GhostClockPreferences extends ExtensionPreferences {
         settings.bind('stretch-to-screen', stretchRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         positionGroup.add(stretchRow);
 
+        const keepRatioRow = new Adw.SwitchRow({
+            title: 'Keep Aspect Ratio',
+            subtitle: 'Off: distort the text to cover the whole screen width and height',
+        });
+        settings.bind('stretch-keep-ratio', keepRatioRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        settings.bind('stretch-to-screen', keepRatioRow, 'sensitive', Gio.SettingsBindFlags.GET);
+        positionGroup.add(keepRatioRow);
+
         const syncPosition = () => {
             const mode = settings.get_string('position-mode');
             const index = POSITIONS.findIndex(([value]) => value === mode);
