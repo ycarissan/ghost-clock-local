@@ -1,0 +1,7 @@
+{
+  "name": "Ghost Clock",
+  "description": "Horloge transparente en bas à droite de tous les écrans qui disparait au mouvement de la souris",
+  "uuid": "ghost-clock@local",
+  "settings-schema": "org.gnome.shell.extensions.ghost-clock",
+  "shell-version": [ "49", "50", "51" ]
+}

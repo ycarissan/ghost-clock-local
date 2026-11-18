@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.ghost-clock" path="/org/gnome/shell/extensions/ghost-clock/">
+    <key name="font-size" type="i">
+      <default>36</default>
+      <summary>Taille de la police</summary>
+    </key>
+    <key name="opacity" type="d">
+      <default>0.35</default>
+      <summary>Transparence de l'horloge</summary>
+    </key>
+    <key name="font-family" type="s">
+      <default>'Sans'</default>
+      <summary>Police de caractères</summary>
+    </key>
+  </schema>
+</schemalist>
