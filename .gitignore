@@ -1,0 +1,66 @@
+# Ignorer les fichiers générés par le système
+.DS_Store
+Thumbs.db
+
+# Ignorer le dossier .git (redondant mais explicite)
+.git/
+
+# Fichiers compilés GSettings
+*.compiled
+schemas/gschemas.compiled
+
+# Dossiers et fichiers de build
+build/
+dist/
+*.o
+*.a
+*.so
+
+# Fichiers de configuration et cache
+*.swp
+*.swo
+*~
+.*.swp
+
+# Dossiers IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Fichiers de logs
+*.log
+.log/
+
+# Fichiers temporaires et de test
+*.tmp
+*.bak
+.tmp/
+
+# Fichiers de dépendances Node.js (si applicable)
+node_modules/
+package-lock.json
+npm-debug.log
+
+# Fichiers de Python (si scripts de build)
+__pycache__/
+*.py[cod]
+
+# Fichiers de configuration locale
+.env
+.env.local
+.env.*.local
+
+# Fichiers de compilation GNOME
+*.gresource
+*.gresource.xml
+
+# Fichiers de backup
+*.old
+*.orig
+*~ 
+
+# OS metadata
+*.md5
+*.sha1
+*.sha256
