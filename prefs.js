@@ -73,6 +73,14 @@ export default class GhostClockPreferences extends ExtensionPreferences {
         opacityRow.add_suffix(scale);
         appearance.add(opacityRow);
 
+        // Panneau à palettes
+        const flapRow = new Adw.SwitchRow({
+            title: 'Panneau à palettes',
+            subtitle: 'Chiffres sur des palettes qui basculent, comme les anciens tableaux de gare ou d’aéroport',
+        });
+        settings.bind('split-flap', flapRow, 'active', Gio.SettingsBindFlags.DEFAULT);
+        appearance.add(flapRow);
+
         // --- Comportement --------------------------------------------------
         const behaviour = new Adw.PreferencesGroup({title: 'Comportement'});
         page.add(behaviour);

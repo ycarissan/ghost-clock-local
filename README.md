@@ -16,6 +16,7 @@ Ghost Clock is a GNOME Shell extension that displays a **transparent, minimalist
 - **Multi-monitor support** : One clock per screen
 - **Configurable position** : Choose from screen corners, center, or custom X/Y percentage position
 - **Full-screen stretch mode** : Option to stretch clock text across the entire screen, keeping its aspect ratio or not
+- **Split-flap display** : Optional train station / airport board look, with digits flipping on each time change
 - **Adjustable transparency** : Customizable opacity from 5% to 100%
 - **Smart auto-hide** : Automatically hides on mouse movement
 - **Smooth animations** : 4 animation types (fade, slide, zoom, instant)
@@ -76,7 +77,8 @@ After installation, access settings via:
 | Group | Setting | Default Value | Description |
 |-------|---------|---------------|-------------|
 | **Appearance** | Font | Sans Bold 27 | Text family, style, weight, and size |
-| **Appearance** | Opacity | 35% | Clock transparency (0.05 to 1.00) |
+| **Appearance** | Opacity | 35% | Clock transparency (5% to 100%) |
+| **Appearance** | Split-flap display | Disabled | Show digits on flipping tiles, like old station / airport boards |
 | **Behavior** | Reappear Delay | 2.0 seconds | Mouse inactivity time before clock returns |
 | **Behavior** | Hide in Fullscreen | Enabled | Hide clock on fullscreen screens |
 | **Animation** | Type | Fade | Choice: Fade, Slide, Zoom, None |

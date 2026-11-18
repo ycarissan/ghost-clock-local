@@ -24,6 +24,11 @@ const ZOOM_SCALE = 0.6;
 // Taille de police de référence pour mesurer le texte en mode « étirer »
 const FIT_REFERENCE_PX = 100;
 
+// Effet « panneau à palettes » (split-flap) : durée d'un demi-basculement
+// et nombre maximal de palettes intermédiaires affichées par chiffre
+const FLAP_HALF_MS = 45;
+const FLAP_MAX_STEPS = 10;
+
 const VISIBLE_PROPS = {opacity: 255, translation_y: 0, scale_x: 1, scale_y: 1};
 
 // Place l'unique enfant dans le conteneur selon des facteurs d'alignement,
@@ -58,6 +63,123 @@ class ClockLayout extends Clutter.LayoutManager {
             const y = Math.round(this.margin + (availH - h) * this.yFactor);
             child.allocate(new Clutter.ActorBox({x1: x, y1: y, x2: x + w, y2: y + h}));
         }
+    }
+});
+
+// Affichage à palettes, façon tableau d'horaires de gare ou d'aéroport :
+// chaque chiffre est sur une palette qui bascule, en passant par les
+// chiffres intermédiaires, lorsque l'heure change.
+const FlapFace = GObject.registerClass(
+class FlapFace extends St.BoxLayout {
+    _init({text, style, tileAlpha}) {
+        super._init({style});
+        this._tileAlpha = tileAlpha;
+        this._cells = [];
+        this._destroyed = false;
+        // Le signal « destroy » est émis avant la destruction des enfants :
+        // les basculements en cours s'arrêtent sans toucher d'acteur détruit.
+        this.connect('destroy', () => {
+            this._destroyed = true;
+        });
+        this._build(text);
+    }
+
+    _build(text) {
+        for (const cell of this._cells)
+            cell.gen++;
+        this.destroy_all_children();
+        this._cells = [...text].map(ch => this._makeCell(ch));
+        for (const cell of this._cells)
+            this.add_child(cell.actor);
+    }
+
+    _makeCell(ch) {
+        const label = new St.Label({
+            text: ch,
+            x_align: Clutter.ActorAlign.CENTER,
+            y_align: Clutter.ActorAlign.CENTER,
+            x_expand: true,
+            y_expand: true,
+            pivot_point: new Graphene.Point({x: 0.5, y: 0.5}),
+        });
+        if (!/\d/.test(ch)) {
+            // Séparateur (« : ») : pas de palette
+            return {actor: label, label, char: ch, gen: 0};
+        }
+
+        label.set_style('padding: 0 0.08em;');
+        const tile = new St.Widget({
+            layout_manager: new Clutter.BinLayout(),
+            style: `background-color: rgba(28, 28, 28, ${this._tileAlpha.toFixed(2)}); ` +
+                'border-radius: 0.1em;',
+        });
+        // Fente horizontale entre les deux moitiés de la palette
+        const split = new St.Widget({
+            style: `background-color: rgba(0, 0, 0, ${Math.min(1, this._tileAlpha * 1.5).toFixed(2)}); height: 0.04em;`,
+            x_expand: true,
+            y_expand: true,
+            x_align: Clutter.ActorAlign.FILL,
+            y_align: Clutter.ActorAlign.CENTER,
+        });
+        tile.add_child(label);
+        tile.add_child(split);
+        return {actor: tile, label, char: ch, gen: 0};
+    }
+
+    setTime(text) {
+        const chars = [...text];
+        if (chars.length !== this._cells.length) {
+            this._build(text);
+            return;
+        }
+        chars.forEach((ch, i) => {
+            if (this._cells[i].char !== ch)
+                this._flip(this._cells[i], ch);
+        });
+    }
+
+    // Suite des caractères affichés pour passer de « from » à « to »
+    _steps(from, to) {
+        if (!/\d/.test(from) || !/\d/.test(to))
+            return [to];
+        const steps = [];
+        let d = Number(from);
+        while (String(d) !== to && steps.length < FLAP_MAX_STEPS) {
+            d = (d + 1) % 10;
+            steps.push(String(d));
+        }
+        if (steps.at(-1) !== to)
+            steps.push(to);
+        return steps;
+    }
+
+    _flip(cell, target) {
+        const gen = ++cell.gen;
+        const steps = this._steps(cell.char, target);
+        cell.char = target;
+        const alive = () => !this._destroyed && gen === cell.gen;
+
+        const step = i => {
+            if (!alive() || i >= steps.length)
+                return;
+            cell.label.ease({
+                scale_y: 0,
+                duration: FLAP_HALF_MS,
+                mode: Clutter.AnimationMode.EASE_IN_QUAD,
+                onComplete: () => {
+                    if (!alive())
+                        return;
+                    cell.label.text = steps[i];
+                    cell.label.ease({
+                        scale_y: 1,
+                        duration: FLAP_HALF_MS,
+                        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+                        onComplete: () => step(i + 1),
+                    });
+                },
+            });
+        };
+        step(0);
     }
 });
 
@@ -124,12 +246,15 @@ export default class GhostClockExtension extends Extension {
         const [xFactor, yFactor] = this._positionFactors();
         const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
+        const splitFlap = this._settings.get_boolean('split-flap');
+        const tileAlpha = Math.min(0.9, this._settings.get_double('opacity') * 1.6);
+
         for (const monitor of Main.layoutManager.monitors) {
-            const label = new St.Label({
-                text: this._timeText,
-                style,
-                pivot_point: new Graphene.Point({x: 0.5, y: 0.5}),
-            });
+            // « label » est l'acteur animé : simple texte ou panneau à palettes
+            const label = splitFlap
+                ? new FlapFace({text: this._timeText, style, tileAlpha})
+                : new St.Label({text: this._timeText, style});
+            label.pivot_point = new Graphene.Point({x: 0.5, y: 0.5});
 
             // Conteneur invisible et non interactif couvrant tout l'écran ;
             // sa mise en page place l'horloge selon les facteurs de position.
@@ -243,6 +368,7 @@ export default class GhostClockExtension extends Extension {
         case 'position-y':
         case 'stretch-to-screen':
         case 'stretch-keep-ratio':
+        case 'split-flap':
             this._buildClocks();
             break;
         default:
@@ -285,7 +411,11 @@ export default class GhostClockExtension extends Extension {
             `font-weight: ${weight}; ` +
             `font-style: ${fontStyle}; ` +
             `color: rgba(255, 255, 255, ${opacity.toFixed(2)}); ` +
-            `text-shadow: 0 1px 4px rgba(0, 0, 0, ${shadow.toFixed(2)});`;
+            `text-shadow: 0 1px 4px rgba(0, 0, 0, ${shadow.toFixed(2)});` +
+            // Palettes : espacement et chiffres de largeur fixe
+            (this._settings.get_boolean('split-flap')
+                ? ' spacing: 0.08em; font-feature-settings: "tnum";'
+                : '');
     }
 
     // --- Heure --------------------------------------------------------------
@@ -301,7 +431,10 @@ export default class GhostClockExtension extends Extension {
 
         this._timeText = text;
         for (const clock of this._clocks) {
-            clock.label.set_text(text);
+            if (clock.label instanceof FlapFace)
+                clock.label.setTime(text);
+            else
+                clock.label.set_text(text);
             this._fitClock(clock);
         }
     }
