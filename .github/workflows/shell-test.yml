@@ -1,0 +1,37 @@
+name: GNOME Shell runtime test
+
+# Starts a headless GNOME Shell in an Ubuntu container, installs the
+# extension from its package, changes every setting and fails on any
+# error. Slower than the static checks, so it only runs on main.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shell-test:
+    runs-on: ubuntu-latest
+    container: ubuntu:26.04   # GNOME Shell 50
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install GNOME Shell
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends \
+            gnome-shell dbus dbus-user-session jq zip unzip libglib2.0-bin \
+            libgl1-mesa-dri libegl-mesa0
+
+      - name: Run the test as a regular user
+        run: |
+          useradd -m tester
+          cp -r . /home/tester/work
+          chown -R tester: /home/tester/work
+          runuser -u tester -- bash -c 'cd ~/work && tests/run-local.sh'

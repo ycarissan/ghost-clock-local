@@ -1,0 +1,52 @@
+name: Static checks
+
+# Fast checks run on every push and pull request: JavaScript lint,
+# GSettings schema validation and metadata.json consistency.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: ESLint
+        run: |
+          npm install --no-audit --no-fund
+          npm run lint
+
+      - name: Validate GSettings schema
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libglib2.0-bin
+          glib-compile-schemas --strict --dry-run schemas/
+
+      - name: Validate metadata.json
+        run: |
+          set -euo pipefail
+          jq -e . metadata.json > /dev/null
+          for key in uuid name description shell-version settings-schema; do
+            jq -e --arg k "$key" 'has($k)' metadata.json > /dev/null \
+              || { echo "::error file=metadata.json::Missing key: $key"; exit 1; }
+          done
+
+          # The settings-schema declared in metadata.json must exist
+          schema=$(jq -r '."settings-schema"' metadata.json)
+          grep -q "id=\"$schema\"" schemas/*.gschema.xml \
+            || { echo "::error file=metadata.json::Schema $schema not found in schemas/"; exit 1; }
+
+          # shell-version entries must be major versions (e.g. "50")
+          jq -e '."shell-version" | all(test("^[0-9]+$"))' metadata.json > /dev/null \
+            || { echo "::error file=metadata.json::shell-version must list major versions only"; exit 1; }
+          echo "metadata.json OK"
