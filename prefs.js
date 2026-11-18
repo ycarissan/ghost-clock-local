@@ -51,7 +51,7 @@ export default class GhostClockPreferences extends ExtensionPreferences {
         // Opacité
         const opacityRow = new Adw.ActionRow({
             title: 'Opacité',
-            subtitle: 'De presque invisible (0,05) à opaque (1,00)',
+            subtitle: 'De presque invisible (5 %) à opaque (100 %)',
         });
         const opacityAdjustment = new Gtk.Adjustment({
             lower: 0.05,
@@ -68,6 +68,8 @@ export default class GhostClockPreferences extends ExtensionPreferences {
             hexpand: true,
             valign: Gtk.Align.CENTER,
         });
+        // La clé stocke une fraction (0.05–1.0), affichée en pourcentage
+        scale.set_format_value_func((_scale, value) => `${Math.round(value * 100)} %`);
         opacityRow.add_suffix(scale);
         appearance.add(opacityRow);
 
@@ -149,7 +151,6 @@ export default class GhostClockPreferences extends ExtensionPreferences {
             subtitle: 'Horizontal position as percentage (0 = left, 100 = right)',
             digits: 0,
         });
-        settings.bind('position-x', positionXRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         positionGroup.add(positionXRow);
 
         const positionYRow = Adw.SpinRow.new_with_range(0, 100, 1);
@@ -158,12 +159,33 @@ export default class GhostClockPreferences extends ExtensionPreferences {
             subtitle: 'Vertical position as percentage (0 = top, 100 = bottom)',
             digits: 0,
         });
-        settings.bind('position-y', positionYRow, 'value', Gio.SettingsBindFlags.DEFAULT);
         positionGroup.add(positionYRow);
+
+        // Les clés stockent une fraction (0.0–1.0), l'interface affiche un pourcentage
+        const bindPercent = (key, row) => {
+            const syncRow = () => {
+                const percent = Math.round(settings.get_double(key) * 100);
+                if (row.value !== percent)
+                    row.value = percent;
+            };
+            row.connect('notify::value', () => {
+                const fraction = row.value / 100;
+                if (Math.abs(settings.get_double(key) - fraction) > 1e-6)
+                    settings.set_double(key, fraction);
+            });
+            const id = settings.connect(`changed::${key}`, syncRow);
+            window.connect('close-request', () => {
+                settings.disconnect(id);
+                return false;
+            });
+            syncRow();
+        };
+        bindPercent('position-x', positionXRow);
+        bindPercent('position-y', positionYRow);
 
         const stretchRow = new Adw.SwitchRow({
             title: 'Stretch to Screen',
-            subtitle: 'Stretch clock text to fill the entire screen width and height',
+            subtitle: 'Enlarge the clock text to fill the screen (aspect ratio kept)',
         });
         settings.bind('stretch-to-screen', stretchRow, 'active', Gio.SettingsBindFlags.DEFAULT);
         positionGroup.add(stretchRow);

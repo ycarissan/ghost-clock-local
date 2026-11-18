@@ -1,5 +1,6 @@
 import St from 'gi://St';
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import Clutter from 'gi://Clutter';
 import Graphene from 'gi://Graphene';
 import Pango from 'gi://Pango';
@@ -20,7 +21,45 @@ const MOVE_THRESHOLD_PX = 3;
 const SLIDE_DISTANCE_PX = 40;
 const ZOOM_SCALE = 0.6;
 
+// Taille de police de référence pour mesurer le texte en mode « étirer »
+const FIT_REFERENCE_PX = 100;
+
 const VISIBLE_PROPS = {opacity: 255, translation_y: 0, scale_x: 1, scale_y: 1};
+
+// Place l'unique enfant dans le conteneur selon des facteurs d'alignement,
+// à l'intérieur d'une marge. N'utilise ni translation ni échelle, qui
+// restent libres pour les animations.
+const ClockLayout = GObject.registerClass(
+class ClockLayout extends Clutter.LayoutManager {
+    _init({xFactor, yFactor, margin}) {
+        super._init();
+        this.xFactor = Math.min(1, Math.max(0, xFactor));
+        this.yFactor = Math.min(1, Math.max(0, yFactor));
+        this.margin = margin;
+    }
+
+    vfunc_get_preferred_width(_container, _forHeight) {
+        return [0, 0];
+    }
+
+    vfunc_get_preferred_height(_container, _forWidth) {
+        return [0, 0];
+    }
+
+    vfunc_allocate(container, box) {
+        const availW = Math.max(0, box.get_width() - 2 * this.margin);
+        const availH = Math.max(0, box.get_height() - 2 * this.margin);
+
+        for (const child of container.get_children()) {
+            const [,, natW, natH] = child.get_preferred_size();
+            const w = Math.min(natW, availW);
+            const h = Math.min(natH, availH);
+            const x = Math.round(this.margin + (availW - w) * this.xFactor);
+            const y = Math.round(this.margin + (availH - h) * this.yFactor);
+            child.allocate(new Clutter.ActorBox({x1: x, y1: y, x2: x + w, y2: y + h}));
+        }
+    }
+});
 
 export default class GhostClockExtension extends Extension {
     enable() {
@@ -82,112 +121,85 @@ export default class GhostClockExtension extends Extension {
         this._destroyClocks();
         const trackFullscreen = this._settings.get_boolean('hide-in-fullscreen');
         const style = this._getStyleString();
-        const positionMode = this._settings.get_string('position-mode');
-        const stretchToScreen = this._settings.get_boolean('stretch-to-screen');
+        const [xFactor, yFactor] = this._positionFactors();
+        const scale = St.ThemeContext.get_for_stage(global.stage).scale_factor;
 
         for (const monitor of Main.layoutManager.monitors) {
-            // Le texte est aligné par la mise en page de St
             const label = new St.Label({
                 text: this._timeText,
                 style,
                 pivot_point: new Graphene.Point({x: 0.5, y: 0.5}),
             });
 
-            // Conteneur invisible et non interactif couvrant tout l'écran
-            const bin = new St.Bin({
-                child: label,
+            // Conteneur invisible et non interactif couvrant tout l'écran ;
+            // sa mise en page place l'horloge selon les facteurs de position.
+            const bin = new St.Widget({
+                layout_manager: new ClockLayout({
+                    xFactor,
+                    yFactor,
+                    margin: MARGIN_PX * scale,
+                }),
                 reactive: false,
                 x: monitor.x,
                 y: monitor.y,
                 width: monitor.width,
                 height: monitor.height,
             });
-
-            // Appliquer l'étirement si activé
-            if (stretchToScreen) {
-                label.set({
-                    width: monitor.width,
-                    height: monitor.height,
-                    x_align: Clutter.ActorAlign.CENTER,
-                    y_align: Clutter.ActorAlign.CENTER,
-                });
-                bin.set_style('padding: 0px;');
-            } else {
-                // Appliquer la position selon le mode
-                this._applyPosition(label, bin, monitor, positionMode);
-            }
+            bin.add_child(label);
 
             if (this._hidden)
                 label.set(this._hiddenProps());
 
             Main.layoutManager.addTopChrome(bin, {trackFullscreen});
-            this._clocks.push({bin, label});
+            const clock = {bin, label, monitor};
+            this._clocks.push(clock);
+            this._fitClock(clock);
         }
     }
 
-    _applyPosition(label, bin, monitor, positionMode) {
-        const margin = MARGIN_PX;
-
-        switch (positionMode) {
-        case 'bottom-right':
-            label.set({
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.END,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
+    // Facteurs d'alignement (0 = gauche/haut, 1 = droite/bas)
+    _positionFactors() {
+        switch (this._settings.get_string('position-mode')) {
         case 'bottom-left':
-            label.set({
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.END,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
+            return [0, 1];
         case 'top-right':
-            label.set({
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.START,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
+            return [1, 0];
         case 'top-left':
-            label.set({
-                x_align: Clutter.ActorAlign.START,
-                y_align: Clutter.ActorAlign.START,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
+            return [0, 0];
         case 'center':
-            label.set({
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
+            return [0.5, 0.5];
         case 'custom':
-            const posX = this._settings.get_double('position-x');
-            const posY = this._settings.get_double('position-y');
-            label.set({
-                x_align: Clutter.ActorAlign.CENTER,
-                y_align: Clutter.ActorAlign.CENTER,
-                translation_x: (posX - 0.5) * monitor.width,
-                translation_y: (posY - 0.5) * monitor.height,
-            });
-            bin.set_style(`padding: ${margin}px;`);
-            break;
-
-        default:
-            label.set({
-                x_align: Clutter.ActorAlign.END,
-                y_align: Clutter.ActorAlign.END,
-            });
-            bin.set_style(`padding: ${margin}px;`);
+            return [
+                this._settings.get_double('position-x'),
+                this._settings.get_double('position-y'),
+            ];
+        default: // 'bottom-right'
+            return [1, 1];
         }
+    }
+
+    // En mode « étirer », calcule la taille de police qui remplit l'écran
+    _fitClock({bin, label, monitor}) {
+        if (!this._settings.get_boolean('stretch-to-screen'))
+            return;
+
+        const margin = 2 * bin.layout_manager.margin;
+        const availW = monitor.width - margin;
+        const availH = monitor.height - margin;
+        if (availW <= 0 || availH <= 0)
+            return;
+
+        // La taille du texte est proportionnelle à la taille de police :
+        // on mesure à une taille de référence puis on applique le ratio.
+        let size = FIT_REFERENCE_PX;
+        for (let i = 0; i < 2; i++) {
+            label.set_style(this._getStyleString(size));
+            const [,, natW, natH] = label.get_preferred_size();
+            if (natW <= 0 || natH <= 0)
+                return;
+            size *= Math.min(availW / natW, availH / natH);
+        }
+        label.set_style(this._getStyleString(Math.floor(size)));
     }
 
     _destroyClocks() {
@@ -200,12 +212,9 @@ export default class GhostClockExtension extends Extension {
     _onSettingChanged(key) {
         switch (key) {
         case 'font':
-        case 'opacity': {
-            const style = this._getStyleString();
-            for (const {label} of this._clocks)
-                label.set_style(style);
+        case 'opacity':
+            this._buildClocks();
             break;
-        }
         case 'hide-in-fullscreen':
         case 'position-mode':
         case 'position-x':
@@ -219,7 +228,8 @@ export default class GhostClockExtension extends Extension {
         }
     }
 
-    _getStyleString() {
+    // sizePx : taille imposée (mode « étirer »), sinon celle de la police choisie
+    _getStyleString(sizePx = 0) {
         const desc = Pango.FontDescription.from_string(this._settings.get_string('font'));
 
         // Retire les caractères qui casseraient la feuille de style
@@ -227,7 +237,10 @@ export default class GhostClockExtension extends Extension {
 
         let size = desc.get_size() / Pango.SCALE;
         let unit = desc.get_size_is_absolute() ? 'px' : 'pt';
-        if (size <= 0) {
+        if (sizePx > 0) {
+            size = sizePx;
+            unit = 'px';
+        } else if (size <= 0) {
             size = DEFAULT_FONT_SIZE_PT;
             unit = 'pt';
         }
@@ -264,8 +277,10 @@ export default class GhostClockExtension extends Extension {
             return;
 
         this._timeText = text;
-        for (const {label} of this._clocks)
-            label.set_text(text);
+        for (const clock of this._clocks) {
+            clock.label.set_text(text);
+            this._fitClock(clock);
+        }
     }
 
     // --- Masquage / réapparition -------------------------------------------
