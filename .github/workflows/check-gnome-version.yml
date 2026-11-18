@@ -1,0 +1,64 @@
+name: Check for new GNOME Shell version
+
+# Every Monday, compare the latest GNOME Shell release with the versions
+# declared in metadata.json. When a newer major version exists, open an
+# issue assigned to the repository owner: GitHub then sends an email.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compare GNOME Shell versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+
+          supported=$(jq -r '."shell-version" | map(tonumber) | max' metadata.json)
+
+          versions=$(curl -fsSL https://download.gnome.org/sources/gnome-shell/cache.json \
+            | jq -r '.[1]["gnome-shell"] | keys[]')
+          latest=$(echo "$versions" | cut -d. -f1 | sort -n | tail -1)
+          release=$(echo "$versions" | grep "^${latest}\." | sort -V | tail -1)
+
+          echo "Highest supported version: $supported"
+          echo "Latest GNOME Shell: $latest (release $release)"
+
+          if [ "$latest" -le "$supported" ]; then
+            echo "Up to date."
+            exit 0
+          fi
+
+          title="Support GNOME Shell $latest"
+          # One issue per major version: skip if it was already opened (even if closed)
+          if gh issue list --state all --limit 200 --json title --jq '.[].title' | grep -qxF "$title"; then
+            echo "Issue \"$title\" already exists."
+            exit 0
+          fi
+
+          gh issue create \
+            --title "$title" \
+            --assignee "$OWNER" \
+            --body "GNOME Shell **$latest** is available (latest release: \`$release\`).
+
+          \`metadata.json\` currently supports up to GNOME Shell **$supported**.
+
+          To do:
+          - [ ] Test the extension on GNOME Shell $latest
+          - [ ] Add \"$latest\" to \`shell-version\` in \`metadata.json\`
+          - [ ] Build the package: \`gnome-extensions pack --force --out-dir=dist .\`
+          - [ ] Publish a new release with the zip
+
+          Release notes: https://download.gnome.org/sources/gnome-shell/$latest/"
