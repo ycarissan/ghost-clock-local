@@ -17,6 +17,8 @@ docker run --rm -v "$PWD:/src:ro" "$IMAGE" bash -c '
         libgl1-mesa-dri libegl-mesa0 > /dev/null
     mkdir -p /run/dbus
     dbus-daemon --system --fork
+    # systemd is not running: make GNOME Shell use its non-systemd login manager
+    rm -rf /run/systemd/seats
     useradd -m tester
     cp -r /src /home/tester/work
     chown -R tester: /home/tester/work
