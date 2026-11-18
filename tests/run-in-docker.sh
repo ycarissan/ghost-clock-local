@@ -15,6 +15,8 @@ docker run --rm -v "$PWD:/src:ro" "$IMAGE" bash -c '
     apt-get install -y -qq --no-install-recommends \
         gnome-shell dbus dbus-user-session jq zip unzip libglib2.0-bin \
         libgl1-mesa-dri libegl-mesa0 > /dev/null
+    mkdir -p /run/dbus
+    dbus-daemon --system --fork
     useradd -m tester
     cp -r /src /home/tester/work
     chown -R tester: /home/tester/work

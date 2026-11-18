@@ -31,6 +31,9 @@ jobs:
 
       - name: Run the test as a regular user
         run: |
+          # GNOME Shell needs a system bus; containers do not start one
+          mkdir -p /run/dbus
+          dbus-daemon --system --fork
           useradd -m tester
           cp -r . /home/tester/work
           chown -R tester: /home/tester/work
