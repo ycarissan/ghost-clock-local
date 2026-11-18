@@ -23,6 +23,7 @@ const ZOOM_SCALE = 0.6;
 
 // Taille de police de référence pour mesurer le texte en mode « étirer »
 const FIT_REFERENCE_PX = 100;
+const FIT_SAFETY = 0.98;
 
 // Effet « panneau à palettes » (split-flap) : durée d'un demi-basculement
 // et nombre maximal de palettes intermédiaires affichées par chiffre
@@ -30,6 +31,13 @@ const FLAP_HALF_MS = 45;
 const FLAP_MAX_STEPS = 10;
 
 const VISIBLE_PROPS = {opacity: 255, translation_y: 0, scale_x: 1, scale_y: 1};
+
+// St.Label sans troncature « … » (l'horloge ne doit jamais être coupée)
+function makeLabel(params) {
+    const label = new St.Label(params);
+    label.clutter_text.ellipsize = Pango.EllipsizeMode.NONE;
+    return label;
+}
 
 // Place l'unique enfant dans le conteneur selon des facteurs d'alignement,
 // à l'intérieur d'une marge. N'utilise ni translation ni échelle, qui
@@ -57,10 +65,12 @@ class ClockLayout extends Clutter.LayoutManager {
 
         for (const child of container.get_children()) {
             const [,, natW, natH] = child.get_preferred_size();
-            const w = Math.min(natW, availW);
-            const h = Math.min(natH, availH);
-            const x = Math.round(this.margin + (availW - w) * this.xFactor);
-            const y = Math.round(this.margin + (availH - h) * this.yFactor);
+            // Taille naturelle, jamais réduite : un St.Label trop étroit
+            // tronquerait son texte avec « … ». S'il déborde, il est centré.
+            const w = natW;
+            const h = natH;
+            const x = Math.round(this.margin + (availW - w) * (w > availW ? 0.5 : this.xFactor));
+            const y = Math.round(this.margin + (availH - h) * (h > availH ? 0.5 : this.yFactor));
             child.allocate(new Clutter.ActorBox({x1: x, y1: y, x2: x + w, y2: y + h}));
         }
     }
@@ -94,7 +104,7 @@ class FlapFace extends St.BoxLayout {
     }
 
     _makeCell(ch) {
-        const label = new St.Label({
+        const label = makeLabel({
             text: ch,
             x_align: Clutter.ActorAlign.CENTER,
             y_align: Clutter.ActorAlign.CENTER,
@@ -253,7 +263,7 @@ export default class GhostClockExtension extends Extension {
             // « label » est l'acteur animé : simple texte ou panneau à palettes
             const label = splitFlap
                 ? new FlapFace({text: this._timeText, style, tileAlpha})
-                : new St.Label({text: this._timeText, style});
+                : makeLabel({text: this._timeText, style});
             label.pivot_point = new Graphene.Point({x: 0.5, y: 0.5});
 
             // Conteneur invisible et non interactif couvrant tout l'écran ;
@@ -330,7 +340,8 @@ export default class GhostClockExtension extends Extension {
                 return;
             size *= Math.min(availW / natW, availH / natH);
         }
-        label.set_style(this._getStyleString(Math.floor(size)));
+        // Légère réserve contre les arrondis et les chiffres plus larges
+        label.set_style(this._getStyleString(Math.floor(size * FIT_SAFETY)));
 
         if (this._settings.get_boolean('stretch-keep-ratio'))
             return;
