@@ -1,17 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema id="org.gnome.shell.extensions.ghost-clock" path="/org/gnome/shell/extensions/ghost-clock/">
-    <key name="font-size" type="i">
-      <default>36</default>
-      <summary>Taille de la police</summary>
+    <key name="font" type="s">
+      <default>'Sans Bold 27'</default>
+      <summary>Police de caractères</summary>
+      <description>Description de police Pango complète (famille, style, graisse et taille), par exemple « Cantarell Bold 27 ».</description>
     </key>
     <key name="opacity" type="d">
+      <range min="0.05" max="1.0"/>
       <default>0.35</default>
-      <summary>Transparence de l'horloge</summary>
+      <summary>Opacité de l'horloge</summary>
     </key>
-    <key name="font-family" type="s">
-      <default>'Sans'</default>
-      <summary>Police de caractères</summary>
+    <key name="reappear-delay" type="d">
+      <range min="0.5" max="30.0"/>
+      <default>2.0</default>
+      <summary>Délai de réapparition (secondes)</summary>
+      <description>Temps d'immobilité de la souris avant que l'horloge réapparaisse.</description>
+    </key>
+    <key name="animation" type="s">
+      <choices>
+        <choice value="fade"/>
+        <choice value="slide"/>
+        <choice value="zoom"/>
+        <choice value="none"/>
+      </choices>
+      <default>'fade'</default>
+      <summary>Type d'animation</summary>
+    </key>
+    <key name="hide-duration" type="i">
+      <range min="0" max="2000"/>
+      <default>120</default>
+      <summary>Durée de la disparition (ms)</summary>
+    </key>
+    <key name="show-duration" type="i">
+      <range min="0" max="5000"/>
+      <default>400</default>
+      <summary>Durée de la réapparition (ms)</summary>
+    </key>
+    <key name="hide-in-fullscreen" type="b">
+      <default>true</default>
+      <summary>Masquer l'horloge sur les écrans ayant une fenêtre en plein écran</summary>
     </key>
   </schema>
 </schemalist>
